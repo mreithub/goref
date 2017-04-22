@@ -47,6 +47,8 @@ or `TakeSnapshot(name string)` to create point-in-time snapshots.
 This example shows how to use GoRef in your web applications.  
 Here it tracks all web handler invocations.
 
+Have a look at the usage documentation at [godoc.org][godoc].
+
 ```go
 func indexHTML(w http.ResponseWriter, r *http.Request) {
 	ref := goref.Ref("/")
@@ -124,3 +126,4 @@ Internally, GoRef calculates with nanosecond precision. The `TotalMsec` and `Avg
 fields are provided for convenience.
 
 [golang]: https://golang.org/
+[godoc]: https://godoc.org/github.com/mreithub/goref
