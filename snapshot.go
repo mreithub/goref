@@ -17,11 +17,6 @@ type Snapshot struct {
 	Previous *Snapshot
 }
 
-// Get -- returns the refcounter Data for the specified key (or nil if not found)
-func (s *Snapshot) Get(key string) *Data {
-	return s.Data[key]
-}
-
 // Keys -- List all keys of this read-only instance
 func (s *Snapshot) Keys() []string {
 	rc := make([]string, 0, len(s.Data))
