@@ -91,6 +91,14 @@ func (g *GoRef) Get(key string) *Data {
 	return g.data[key]
 }
 
+// GetData -- Returns a map with this read-only instance's data (useful for JSON output)
+func (g *GoRef) GetData() map[string]*Data {
+	if g.lock != nil {
+		panic("GoRef: Called Get() on an active instance! call Clone() or TakeSnapshot() first!")
+	}
+	return g.data
+}
+
 // Keys -- List all keys of this read-only instance
 func (g *GoRef) Keys() []string {
 	if g.lock != nil {
