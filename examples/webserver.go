@@ -19,7 +19,7 @@ func indexHTML(w http.ResponseWriter, r *http.Request) {
 }
 
 func delayedHTML(w http.ResponseWriter, r *http.Request) {
-	ref := goref.Ref("/hello.html")
+	ref := goref.Ref("/delayed.html")
 	defer ref.Deref()
 
 	time.Sleep(200 * time.Millisecond)
