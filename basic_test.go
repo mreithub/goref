@@ -43,7 +43,7 @@ func TestBasics(t *testing.T) {
 	assert.Equal(t, int32(0), d1.RefCount)
 	assert.Equal(t, int64(1), d1.TotalCount)
 	assert.True(t, d1.TotalNsec > 0)
-	assert.Equal(t, 1, len(clone1.GetData()))
+	assert.Equal(t, 1, len(clone1.Data))
 
 	// clone2: clone1 + Ref('world'),  sleep(100ms)
 	keys = clone2.Keys()
@@ -64,31 +64,4 @@ func TestBasics(t *testing.T) {
 	assert.True(t, d3.TotalNsec >= 100000000)
 	assert.True(t, clone3.Get("hello").TotalNsec < 100000)
 	assert.NotEqual(t, d1.TotalNsec, d3.TotalNsec)
-}
-
-func TestGetPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			assert.Fail(t, "Expected a panic() in GoRef.Get()")
-		}
-	}()
-	NewGoRef().Get("foo")
-}
-
-func TestGetDataPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			assert.Fail(t, "Expected a panic() in GoRef.GetData()")
-		}
-	}()
-	NewGoRef().GetData()
-}
-
-func TestKeysPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			assert.Fail(t, "Expected a panic() in GoRef.Keys()")
-		}
-	}()
-	NewGoRef().Keys()
 }
