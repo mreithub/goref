@@ -23,7 +23,7 @@ Add the following snippet to each function (or goroutine) you want to track
 (and replace 'foo' with your own key names).
 
 ```go
-goref.Ref("foo"); defer ref.Deref()
+ref := goref.Ref("foo"); defer ref.Deref()
 ```
 
 The above snippet uses `GoRef` in singleton mode. But you can also create your
@@ -34,7 +34,7 @@ application):
 g := goref.NewGoRef()
 
 // and then instead of the above snippet:
-g.Ref("foo"); defer ref.Deref()
+ref := g.Ref("foo"); defer ref.Deref()
 ```
 
 
