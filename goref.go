@@ -9,9 +9,6 @@ import (
 // TODO tracking execution time might cause performance issues (e.g. in virtualized environments gettimeofday() might be slow)
 //   if that turns out to be the case, deactivate Data.TotalNsec
 
-// singleton GoRef instance
-var instance = NewGoRef()
-
 // GoRef -- A simple, thread safe key-based reference counter that can be used for profiling your application
 type GoRef struct {
 	data map[string]*Data
@@ -34,7 +31,7 @@ func (g *GoRef) get(key string) *Data {
 	return rc
 }
 
-// Clone -- Returns a copy of the GoRef  (synchronously)
+// Clone -- Returns a Snapshot of the GoRef  (synchronously)
 func (g *GoRef) Clone() *Snapshot {
 	g.lock.Lock()
 	defer g.lock.Unlock()
