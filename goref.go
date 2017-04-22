@@ -83,6 +83,30 @@ func (g *GoRef) Clone() GoRef {
 	}
 }
 
+// Get -- returns the refcounter Data for the specified key (or nil if not found)
+func (g *GoRef) Get(key string) *Data {
+	if g.lock != nil {
+		// make sure this instance is readonly
+		panic("GoRef: Called Get() on an active instance! call Clone() or TakeSnapshot() first!")
+	}
+
+	return g.data[key]
+}
+
+// Keys -- List all keys of this read-only instance
+func (g *GoRef) Keys() []string {
+	if g.lock != nil {
+		panic("GoRef: Called Keys() on an active instance! call Clone() or TakeSnapshot() first!")
+	}
+	rc := make([]string, 0, len(g.data))
+
+	for k := range g.data {
+		rc = append(rc, k)
+	}
+
+	return rc
+}
+
 // Ref -- References an instance of 'key'
 func (g *GoRef) Ref(key string) Instance {
 	data := g.get(key)

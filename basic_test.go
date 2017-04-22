@@ -33,27 +33,31 @@ func TestBasics(t *testing.T) {
 	assert.True(t, d.totalNsec >= 100000000)
 
 	// clone1: Ref('hello'), Deref('hello')
-	assert.Contains(t, clone1.data, "hello")
-	assert.NotContains(t, clone1.data, "world")
-	d1 := clone1.data["hello"]
+	keys := clone1.Keys()
+	assert.Contains(t, keys, "hello")
+	assert.NotContains(t, keys, "world")
+	d1 := clone1.Get("hello")
 	assert.Equal(t, int32(0), d1.refCount)
 	assert.Equal(t, int64(1), d1.totalCount)
 	assert.True(t, d1.totalNsec > 0)
 
 	// clone2: clone1 + Ref('world'),  sleep(100ms)
-	assert.Contains(t, clone2.data, "hello")
-	assert.Contains(t, clone2.data, "world")
-	d2 := clone2.data["world"]
+	keys = clone2.Keys()
+	assert.Contains(t, keys, "hello")
+	assert.Contains(t, keys, "world")
+	d2 := clone2.Get("world")
 	assert.Equal(t, int32(1), d2.refCount)
 	assert.Equal(t, int64(1), d2.totalCount)
 	assert.Equal(t, int64(0), d2.totalNsec)
 
 	// clone3: clone2 + Deref('world'), Ref('hello')
-	assert.Contains(t, clone3.data, "hello")
-	assert.Contains(t, clone3.data, "world")
-	d3 := clone3.data["world"]
+	keys = clone3.Keys()
+	assert.Contains(t, keys, "hello")
+	assert.Contains(t, keys, "world")
+	d3 := clone3.Get("world")
 	assert.Equal(t, int32(0), d3.refCount)
 	assert.Equal(t, int64(1), d3.totalCount)
 	assert.True(t, d3.totalNsec >= 100000000)
-	assert.True(t, clone3.data["hello"].totalNsec < 100000)
+	assert.True(t, clone3.Get("hello").totalNsec < 100000)
+	assert.NotEqual(t, d1.totalNsec, d3.totalNsec)
 }
