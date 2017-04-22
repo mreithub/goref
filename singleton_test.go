@@ -17,13 +17,12 @@ func TestSingleton(t *testing.T) {
 	assert.Contains(t, instance.data, "hello")
 	assert.Contains(t, instance.data, "world")
 	d := instance.get("hello")
-	assert.Equal(t, int32(0), d.RefCount)
-	assert.Equal(t, int64(1), d.TotalCount)
+	assert.Equal(t, int32(0), d.refCount)
+	assert.Equal(t, int64(1), d.totalCount)
 	d = instance.get("world")
-	assert.Equal(t, int32(0), d.RefCount)
-	assert.Equal(t, int64(1), d.TotalCount)
+	assert.Equal(t, int32(0), d.refCount)
+	assert.Equal(t, int64(1), d.totalCount)
 	assert.Equal(t, snap, instance.Snapshots())
-	assert.Equal(t, instance.data, snap.Data)
 
 	// reset instance
 	Reset()

@@ -14,9 +14,16 @@ type Instance struct {
 
 // Deref -- Dereference an instance of 'key'
 func (i Instance) Deref() {
-	now := time.Now()
+	var now time.Time
+	if !i.startTime.IsZero() {
+		// only measure time if startTime was set
+		now = time.Now()
+	}
+
 	data := i.parent.get(i.key)
-	atomic.AddInt32(&data.RefCount, -1)
-	nsec := now.Sub(i.startTime).Nanoseconds()
-	atomic.AddInt64(&data.TotalNsec, nsec)
+	atomic.AddInt32(&data.refCount, -1)
+	if !now.IsZero() {
+		nsec := now.Sub(i.startTime).Nanoseconds()
+		atomic.AddInt64(&data.totalNsec, nsec)
+	}
 }

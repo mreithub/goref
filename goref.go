@@ -9,22 +9,29 @@ import (
 // TODO tracking execution time might cause performance issues (e.g. in virtualized environments gettimeofday() might be slow)
 //   if that turns out to be the case, deactivate Data.TotalNsec
 
+// data -- internal GoRef data structure
+type data struct {
+	refCount   int32
+	totalCount int64
+	totalNsec  int64
+}
+
 // GoRef -- A simple, thread safe key-based reference counter that can be used for profiling your application
 type GoRef struct {
-	data map[string]*Data
+	data map[string]*data
 	lock *sync.Mutex
 
 	snapshots *Snapshot
 }
 
 // get -- Get the Data object for the specified key (or create it) - thread safe
-func (g *GoRef) get(key string) *Data {
+func (g *GoRef) get(key string) *data {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 
 	rc, ok := g.data[key]
 	if !ok {
-		rc = &Data{}
+		rc = &data{}
 		g.data[key] = rc
 	}
 
@@ -39,11 +46,7 @@ func (g *GoRef) Clone() *Snapshot {
 	data := map[string]*Data{}
 
 	for key, d := range g.data {
-		data[key] = &Data{
-			RefCount:   d.RefCount,
-			TotalCount: d.TotalCount,
-			TotalNsec:  d.TotalNsec,
-		}
+		data[key] = newData(d)
 	}
 
 	// return a cloned GoRef instance
@@ -56,8 +59,8 @@ func (g *GoRef) Clone() *Snapshot {
 // Ref -- References an instance of 'key'
 func (g *GoRef) Ref(key string) Instance {
 	data := g.get(key)
-	atomic.AddInt32(&data.RefCount, 1)
-	atomic.AddInt64(&data.TotalCount, 1)
+	atomic.AddInt32(&data.refCount, 1)
+	atomic.AddInt64(&data.totalCount, 1)
 
 	return Instance{
 		parent:    g,
@@ -91,6 +94,6 @@ func (g *GoRef) TakeSnapshot(name string) *Snapshot {
 func NewGoRef() *GoRef {
 	return &GoRef{
 		lock: &sync.Mutex{},
-		data: map[string]*Data{},
+		data: map[string]*data{},
 	}
 }
