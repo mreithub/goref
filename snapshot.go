@@ -12,6 +12,9 @@ type Snapshot struct {
 
 	// Creation timestamp
 	Ts time.Time
+
+	// Previous Snapshot (or nil if this is the first one)
+	Previous *Snapshot
 }
 
 // Get -- returns the refcounter Data for the specified key (or nil if not found)

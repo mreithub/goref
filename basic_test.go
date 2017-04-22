@@ -34,6 +34,7 @@ func TestBasics(t *testing.T) {
 	assert.Equal(t, int32(0), d.RefCount)
 	assert.Equal(t, int64(1), d.TotalCount)
 	assert.True(t, d.TotalNsec >= 100000000)
+	assert.Empty(t, g.Snapshots())
 
 	// clone1: Ref('hello'), Deref('hello')
 	keys := clone1.Keys()

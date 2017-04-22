@@ -17,7 +17,7 @@ type GoRef struct {
 	data map[string]*Data
 	lock *sync.Mutex
 
-	snapshots []Snapshot
+	snapshots *Snapshot
 }
 
 // get -- Get the Data object for the specified key (or create it) - thread safe
@@ -35,7 +35,7 @@ func (g *GoRef) get(key string) *Data {
 }
 
 // Clone -- Returns a copy of the GoRef  (synchronously)
-func (g *GoRef) Clone() Snapshot {
+func (g *GoRef) Clone() *Snapshot {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 
@@ -50,7 +50,7 @@ func (g *GoRef) Clone() Snapshot {
 	}
 
 	// return a cloned GoRef instance
-	return Snapshot{
+	return &Snapshot{
 		Data: data,
 		Ts:   time.Now(),
 	}
@@ -69,13 +69,14 @@ func (g *GoRef) Ref(key string) Instance {
 	}
 }
 
-// Snapshots -- Lists snapshots
-func (g *GoRef) Snapshots() []Snapshot {
+// Snapshots -- Linked list of Snapshots (in reverse order)
+func (g *GoRef) Snapshots() *Snapshot {
+	// We assume here that pointer access is atomic (to avoid locking the Mutex)
 	return g.snapshots
 }
 
 // TakeSnapshot -- Clone the current GoRef instance and return the new snapshot
-func (g *GoRef) TakeSnapshot(name string) Snapshot {
+func (g *GoRef) TakeSnapshot(name string) *Snapshot {
 	// prepends the snapshot to the list
 	rc := g.Clone()
 	rc.Name = name
@@ -83,7 +84,8 @@ func (g *GoRef) TakeSnapshot(name string) Snapshot {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 
-	g.snapshots = append([]Snapshot{rc}, g.snapshots...)
+	rc.Previous = g.snapshots
+	g.snapshots = rc
 
 	return rc
 }
