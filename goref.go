@@ -1,7 +1,6 @@
 package goref
 
 import (
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -42,7 +41,6 @@ func (i Instance) Deref() {
 	data := i.parent.get(i.key)
 	atomic.AddInt32(&data.RefCount, -1)
 	nsec := now.Sub(i.startTime).Nanoseconds()
-	log.Print("nsec: ", nsec)
 	atomic.AddInt64(&data.TotalNsec, nsec)
 }
 
