@@ -8,16 +8,16 @@ import (
 )
 
 // TODO tracking execution time here might cause performance issues (e.g. in virtualized environments gettimeofday() might be slow)
-//   if that turns out to be the case, deactivate Data.totalNsec
+//   if that turns out to be the case, deactivate Data.TotalNsec
 
 // singleton GoRef instance
 var instance = NewGoRef()
 
 // Data -- RefCounter data
 type Data struct {
-	refCount   int32
-	totalCount int64
-	totalNsec  int64
+	RefCount   int32
+	TotalCount int64
+	TotalNsec  int64
 }
 
 // GoRef -- A simple, thread safe key-based reference counter that can be used for profiling your application
@@ -40,10 +40,10 @@ type Instance struct {
 func (i Instance) Deref() {
 	now := time.Now()
 	data := i.parent.get(i.key)
-	atomic.AddInt32(&data.refCount, -1)
+	atomic.AddInt32(&data.RefCount, -1)
 	nsec := now.Sub(i.startTime).Nanoseconds()
 	log.Print("nsec: ", nsec)
-	atomic.AddInt64(&data.totalNsec, nsec)
+	atomic.AddInt64(&data.TotalNsec, nsec)
 }
 
 // get -- Get the Data object for the specified key (or create it)
@@ -69,9 +69,9 @@ func (g *GoRef) Clone() GoRef {
 
 	for key, d := range g.data {
 		data[key] = &Data{
-			refCount:   d.refCount,
-			totalCount: d.totalCount,
-			totalNsec:  d.totalNsec,
+			RefCount:   d.RefCount,
+			TotalCount: d.TotalCount,
+			TotalNsec:  d.TotalNsec,
 		}
 	}
 
@@ -110,8 +110,8 @@ func (g *GoRef) Keys() []string {
 // Ref -- References an instance of 'key'
 func (g *GoRef) Ref(key string) Instance {
 	data := g.get(key)
-	atomic.AddInt32(&data.refCount, 1)
-	atomic.AddInt64(&data.totalCount, 1)
+	atomic.AddInt32(&data.RefCount, 1)
+	atomic.AddInt64(&data.TotalCount, 1)
 
 	return Instance{
 		parent:    g,
