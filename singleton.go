@@ -9,16 +9,17 @@ func Clone() *Snapshot {
 }
 
 // Ref -- References an instance of 'key' (in singleton mode)
-func Ref(key string) Instance {
+func Ref(key string) *Instance {
 	return instance.Ref(key)
 }
 
 // Reset -- replaces the GoRef singleton instance
+//
 // Note: This function is NOT synchronized and you might end up losing some data.
-//   But since 'losing data' is the idea of this function, there's really no
-//   downside (at least none I can think of).
-//   If that's a problem for you, create your own GoRef instance and ignore the
-//   singleton.
+// But since 'losing data' is the idea of this function, there's really no
+// downside (at least none I can think of).
+// If that's a problem for you, create your own GoRef instance and ignore the
+// singleton.
 func Reset() {
 	instance = NewGoRef()
 }

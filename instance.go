@@ -1,6 +1,7 @@
 package goref
 
 import (
+	"log"
 	"sync/atomic"
 	"time"
 )
@@ -8,22 +9,33 @@ import (
 // Instance - Trackable instance
 type Instance struct {
 	parent    *GoRef
+	data      *data
 	key       string
 	startTime time.Time
 }
 
 // Deref -- Dereference an instance of 'key'
-func (i Instance) Deref() {
+func (i *Instance) Deref() {
+	if i.parent == nil {
+		log.Print("GoRef warning: possible double Deref()")
+		return
+	}
+
 	var now time.Time
 	if !i.startTime.IsZero() {
 		// only measure time if startTime was set
 		now = time.Now()
 	}
 
-	data := i.parent.get(i.key)
-	atomic.AddInt32(&data.refCount, -1)
+	d := i.data
+	if d == nil {
+		d = i.parent.get(i.key)
+	}
+	atomic.AddInt32(&d.refCount, -1)
 	if !now.IsZero() {
 		nsec := now.Sub(i.startTime).Nanoseconds()
-		atomic.AddInt64(&data.totalNsec, nsec)
+		atomic.AddInt64(&d.totalNsec, nsec)
 	}
+
+	i.parent = nil // prevent double Deref()
 }

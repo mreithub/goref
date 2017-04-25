@@ -16,7 +16,7 @@ type data struct {
 	totalNsec  int64
 }
 
-// GoRef -- A simple, thread safe key-based reference counter that can be used for profiling your application
+// GoRef -- A simple, thread safe key-based reference counter that can be used for profiling your application (main class)
 type GoRef struct {
 	data map[string]*data
 	lock *sync.Mutex
@@ -57,13 +57,14 @@ func (g *GoRef) Clone() *Snapshot {
 }
 
 // Ref -- References an instance of 'key'
-func (g *GoRef) Ref(key string) Instance {
+func (g *GoRef) Ref(key string) *Instance {
 	data := g.get(key)
 	atomic.AddInt32(&data.refCount, 1)
 	atomic.AddInt64(&data.totalCount, 1)
 
-	return Instance{
+	return &Instance{
 		parent:    g,
+		data:      data,
 		key:       key,
 		startTime: time.Now(),
 	}

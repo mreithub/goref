@@ -2,13 +2,23 @@ package goref
 
 // Data -- Reference counter Snapshot data
 type Data struct {
-	RefCount   int32
+	// Currently active invocations
+	RefCount int32
+	// Total number of invocations
 	TotalCount int64
-	TotalNsec  int64
-	TotalMsec  int64
-	AvgMsec    float32
+
+	// Total number of nanoseconds spent in that function
+	TotalNsec int64
+
+	// Computad field (TotalNsec/1000000), provided for convenience
+	TotalMsec int64
+	// Computed field (TotalMsec/TotalCount), provided for convenience
+	AvgMsec float32
 }
 
+// Creates a Data object from an (internal) data object
+//
+// Copies all the duplicate fields over and calculates the convenience fields.
 func newData(d *data) *Data {
 	var avgMsec float64
 	if d.totalCount > 0 {
