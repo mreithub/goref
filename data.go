@@ -3,19 +3,19 @@ package goref
 // Data -- Reference counter Snapshot data
 type Data struct {
 	// Currently active invocations
-	Active int32
+	Active int32 `json:"active"`
 
 	// Total number of (finished) invocations
-	Total int64
+	Total int64 `json:"total"`
 
 	// Total time spent (in nanoseconds)
-	TotalNsec int64
+	TotalNsec int64 `json:"totalNsec"`
 
 	// Computad field (TotalNsec/1000000), provided for convenience
-	TotalMsec int64
+	TotalMsec int64 `json:"totalMsec"`
 
 	// Computed field (TotalMsec/TotalCount), provided for convenience
-	AvgMsec float32
+	AvgMsec float32 `json:"avgMsec"`
 }
 
 // Creates a Data object from an (internal) data object
