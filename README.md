@@ -1,17 +1,22 @@
-# GoRef - Simple (and thread safe) golang reference counter
+# GoRef - Simple (and fast) golang reference counter (using `atomic` integers)
 
 GoRef is a small [Go][golang] package which implements a simple key-based
-invocation counter.
-This can be used to check that your code behaves the way you expect
-(e.g. whether you're properly cleaning up resources you're using, that all your
-goroutines exit as expected, ...)
+invocation and timing profiler.
 
-It also tracks execution time, so it might help you to find bottlenecks in your
-web application.
+It can be used to:
+- track execution time of your functions/goroutines
+- find bottlenecks in your code
+- Check if your goroutines exit properly
+- Track calls to your HTTP endpoints (and their execution time) - see below
 
-And there's snapshot support. It allows you to create Snapshot copies of the
-ref counter (e.g. periodically or at certain key points in your application)
-which help to further narrow down potential issues.
+To access the internal profiling data, use `Clone()` or `Snapshot()`. Both will
+create a deep copy of GoRef's internal state. `Snapshot()` then adds that data
+to the list of named Snapshots (so you can look at different phases of your program separately).
+
+GoRef's code is thread safe (where it has to be). But it was written with performance in mind, so
+while internal tracking is accurate, there might be one-off errors when taking a `Snapshot` while
+another goroutine is in the middle of calling `Deref()`.
+
 
 ### Getting started
 
@@ -99,31 +104,70 @@ like this:
 ```json
 {
   "/": {
-    "RefCount": 0,
-    "TotalCount": 5,
-    "TotalNsec": 12296,
-    "TotalMsec": 0,
-    "AvgMsec": 0.0024592
+    "active": 0,
+    "total": 5,
+    "totalNsec": 12296,
+    "totalMsec": 0,
+    "avgMsec": 0.0024592
   },
   "/goref.json": {
-    "RefCount": 1,
-    "TotalCount": 9,
-    "TotalNsec": 547385,
-    "TotalMsec": 0,
-    "AvgMsec": 0.060820557
+    "Active": 1,
+    "total": 9,
+    "totalNsec": 547385,
+    "totalMsec": 0,
+    "avgMsec": 0.060820557
   },
   "/delayed.html": {
-    "RefCount": 0,
-    "TotalCount": 2,
-    "TotalNsec": 412555528,
-    "TotalMsec": 412,
-    "AvgMsec": 206.27777
+    "active": 0,
+    "total": 2,
+    "totalNsec": 412555528,
+    "totalMsec": 412,
+    "avgMsec": 206.27777
   }
 }
 ```
 
-Internally, GoRef calculates with nanosecond precision. The `TotalMsec` and `AvgMsec`
-fields are provided for convenience.
+- `active`: the number of currently active instances
+- `total`: total number of (finished) instances (doesn't include the `active` ones yet)
+- `totalNsec`: total time spent in that function
+- `totalMsec`: calculated field (`totalNsec/1000000`), provided for convenience and readability
+- `avgMsec`: calculated average (`totalNsec/(1000000*total)`)
+
+### Using [`gorilla-mux`][gorillamux]
+
+If you're using [gorilla-mux][gorillamux], there's a simple way to
+add GoRef to your project:
+
+```go
+func trackRequests(router *mux.Router) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    // Try to find the matching HTTP route (we'll use that as GoRef key)
+    var match mux.RouteMatch
+    if router.Match(r, &match) {
+      path, _ := match.Route.GetPathTemplate()
+      path = fmt.Sprintf("%s %s", r.Method, path)
+
+      ref := goref.Ref(path)
+      router.ServeHTTP(w, r)
+      ref.Deref()
+    } else {
+      // No route found (-> 404 error)
+      router.ServeHTTP(w, r)
+    }
+  })
+}
+```
+
+and in your main function something like:
+
+```go
+var router = mux.NewRouter()
+// add your routes here using router.HandleFunc() and the like
+var addr = ":8080"
+var handler = handlers.LoggingHandler(os.Stdout, trackRequests(router))
+log.Fatal(http.ListenAndServe(addr, handler))
+```
 
 [golang]: https://golang.org/
 [godoc]: https://godoc.org/github.com/mreithub/goref
+[gorillamux]: https://github.com/gorilla/mux
