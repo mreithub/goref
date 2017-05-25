@@ -5,7 +5,7 @@ type Data struct {
 	// Currently active invocations
 	Active int32
 
-	// Total number of invocations
+	// Total number of (finished) invocations
 	Total int64
 
 	// Total time spent (in nanoseconds)

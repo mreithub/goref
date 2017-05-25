@@ -32,6 +32,7 @@ func (i *Instance) Deref() {
 		d = i.parent.get(i.key)
 	}
 	atomic.AddInt32(&d.active, -1)
+	atomic.AddInt64(&d.total, 1)
 	if !now.IsZero() {
 		nsec := now.Sub(i.startTime).Nanoseconds()
 		atomic.AddInt64(&d.totalNsec, nsec)

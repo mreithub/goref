@@ -63,7 +63,6 @@ func (g *GoRef) Clone() *Snapshot {
 func (g *GoRef) Ref(key string) *Instance {
 	data := g.get(key)
 	atomic.AddInt32(&data.active, 1)
-	atomic.AddInt64(&data.total, 1)
 
 	return &Instance{
 		parent:    g,
