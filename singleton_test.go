@@ -43,7 +43,7 @@ func TestSingleton(t *testing.T) {
 	assert.True(t, d1.TotalNsec > 0)
 	d2 := clone.Data["world"]
 	assert.Equal(t, int32(1), d2.Active)
-	assert.Equal(t, int64(1), d2.Total)
+	assert.Equal(t, int64(0), d2.Total)
 	assert.Equal(t, int64(0), d2.TotalNsec)
 	assert.Equal(t, 2, len(clone.Data))
 

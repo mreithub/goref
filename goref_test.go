@@ -52,7 +52,7 @@ func TestBasics(t *testing.T) {
 	assert.Contains(t, keys, "world")
 	d2 := clone2.Data["world"]
 	assert.Equal(t, int32(1), d2.Active)
-	assert.Equal(t, int64(1), d2.Total)
+	assert.Equal(t, int64(0), d2.Total)
 	assert.Equal(t, int64(0), d2.TotalNsec)
 
 	// clone3: clone2 + Deref('world'), Ref('hello')
