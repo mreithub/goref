@@ -168,6 +168,43 @@ var handler = handlers.LoggingHandler(os.Stdout, trackRequests(router))
 log.Fatal(http.ListenAndServe(addr, handler))
 ```
 
+You'll get GoRef data looking something like this:
+
+```json
+{
+  "POST /login": {
+    "active": 0,
+    "total": 5,
+    "totalNsec": 12296,
+    "totalMsec": 0,
+    "avgMsec": 0.0024592
+  },
+  "GET /goref.json": {
+    "Active": 1,
+    "total": 9,
+    "totalNsec": 547385,
+    "totalMsec": 0,
+    "avgMsec": 0.060820557
+  },
+  "GET /users/{name}/info": {
+    "active": 0,
+    "total": 2,
+    "totalNsec": 412555528,
+    "totalMsec": 412,
+    "avgMsec": 206.27777
+  },
+  "POST /login": {
+    "active": 0,
+    "total": 5,
+    "totalNsec": 12296,
+    "totalMsec": 0,
+    "avgMsec": 0.0024592
+  }
+}
+```
+
+Requests matched by the same gorilla-mux route will be grouped together.
+
 [golang]: https://golang.org/
 [godoc]: https://godoc.org/github.com/mreithub/goref
 [gorillamux]: https://github.com/gorilla/mux
