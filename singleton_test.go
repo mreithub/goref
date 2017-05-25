@@ -17,11 +17,11 @@ func TestSingleton(t *testing.T) {
 	assert.Contains(t, instance.data, "hello")
 	assert.Contains(t, instance.data, "world")
 	d := instance.get("hello")
-	assert.Equal(t, int32(0), d.refCount)
-	assert.Equal(t, int64(1), d.totalCount)
+	assert.Equal(t, int32(0), d.active)
+	assert.Equal(t, int64(1), d.total)
 	d = instance.get("world")
-	assert.Equal(t, int32(0), d.refCount)
-	assert.Equal(t, int64(1), d.totalCount)
+	assert.Equal(t, int32(0), d.active)
+	assert.Equal(t, int64(1), d.total)
 	assert.Equal(t, snap, instance.Snapshots())
 
 	// reset instance
@@ -38,23 +38,23 @@ func TestSingleton(t *testing.T) {
 
 	// clone: Ref('hello'), Deref('hello'), Ref('world')
 	d1 := clone.Data["hello"]
-	assert.Equal(t, int32(0), d1.RefCount)
-	assert.Equal(t, int64(1), d1.TotalCount)
+	assert.Equal(t, int32(0), d1.Active)
+	assert.Equal(t, int64(1), d1.Total)
 	assert.True(t, d1.TotalNsec > 0)
 	d2 := clone.Data["world"]
-	assert.Equal(t, int32(1), d2.RefCount)
-	assert.Equal(t, int64(1), d2.TotalCount)
+	assert.Equal(t, int32(1), d2.Active)
+	assert.Equal(t, int64(1), d2.Total)
 	assert.Equal(t, int64(0), d2.TotalNsec)
 	assert.Equal(t, 2, len(clone.Data))
 
 	// snap: clone + Deref('world')
 	d1 = snap.Data["hello"]
-	assert.Equal(t, int32(0), d1.RefCount)
-	assert.Equal(t, int64(1), d1.TotalCount)
+	assert.Equal(t, int32(0), d1.Active)
+	assert.Equal(t, int64(1), d1.Total)
 	assert.True(t, d1.TotalNsec > 0)
 	d2 = snap.Data["world"]
-	assert.Equal(t, int32(0), d2.RefCount)
-	assert.Equal(t, int64(1), d2.TotalCount)
+	assert.Equal(t, int32(0), d2.Active)
+	assert.Equal(t, int64(1), d2.Total)
 	assert.True(t, d2.TotalNsec > 0)
 	assert.Equal(t, 2, len(snap.Data))
 }

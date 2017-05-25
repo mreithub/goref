@@ -11,9 +11,12 @@ import (
 
 // data -- internal GoRef data structure
 type data struct {
-	refCount   int32
-	totalCount int64
-	totalNsec  int64
+	// currently active invocations
+	active int32
+	// number of finished invocations
+	total int64
+	// time spent in those invocations (in nanoseconds)
+	totalNsec int64
 }
 
 // GoRef -- A simple, thread safe key-based reference counter that can be used for profiling your application (main class)
@@ -59,8 +62,8 @@ func (g *GoRef) Clone() *Snapshot {
 // Ref -- References an instance of 'key'
 func (g *GoRef) Ref(key string) *Instance {
 	data := g.get(key)
-	atomic.AddInt32(&data.refCount, 1)
-	atomic.AddInt64(&data.totalCount, 1)
+	atomic.AddInt32(&data.active, 1)
+	atomic.AddInt64(&data.total, 1)
 
 	return &Instance{
 		parent:    g,

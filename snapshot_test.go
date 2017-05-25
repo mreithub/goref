@@ -25,11 +25,11 @@ func TestSnapshots(t *testing.T) {
 	//test snapshot data
 	snap2 := g.Snapshots()
 	snap1 := snap2.Previous
-	assert.Equal(t, int32(1), snap2.Data["hello"].RefCount)
-	assert.Equal(t, int64(2), snap2.Data["hello"].TotalCount)
+	assert.Equal(t, int32(1), snap2.Data["hello"].Active)
+	assert.Equal(t, int64(2), snap2.Data["hello"].Total)
 
-	assert.Equal(t, int32(0), snap1.Data["hello"].RefCount)
-	assert.Equal(t, int64(1), snap1.Data["hello"].TotalCount)
+	assert.Equal(t, int32(0), snap1.Data["hello"].Active)
+	assert.Equal(t, int64(1), snap1.Data["hello"].Total)
 
 	// test linked list (and order)
 	assert.Equal(t, s2, snap2)
