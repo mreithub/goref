@@ -20,19 +20,36 @@ func indexHTML(w http.ResponseWriter, r *http.Request) {
 }
 
 func delayedHTML(w http.ResponseWriter, r *http.Request) {
-	time.Sleep(200 * time.Millisecond)
-	msg := fmt.Sprintf("The time is %s", time.Now().String())
+	foo := processStuff(r.RemoteAddr)
+	result := <-foo
+	msg := fmt.Sprintf("Incoming message: %s", result)
 	w.Write([]byte(msg))
 }
 
+func processStuff(name string) chan string {
+	rc := make(chan string)
+
+	go func() {
+		// since processing takes some time, we'll add a separate GoRef instance here (this time in the "app" scope)
+		r := goref.GetInstance("app").Ref("processing")
+		defer r.Deref()
+
+		time.Sleep(200 * time.Millisecond)
+		rc <- fmt.Sprintf("Hello %s", name)
+	}()
+
+	return rc
+}
+
 func gorefJSON(w http.ResponseWriter, r *http.Request) {
-	data, _ := json.Marshal(goref.GetSnapshot().Data)
+	data, _ := json.Marshal(goref.GetSnapshot())
 
 	w.Header().Add("Content-type", "application/json")
 	w.Write(data)
 }
 
 func trackRequests(router *mux.Router) http.Handler {
+	g := goref.GetInstance("http")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Try to find the matching HTTP route (we'll use that as GoRef key)
 		var match mux.RouteMatch
@@ -40,7 +57,7 @@ func trackRequests(router *mux.Router) http.Handler {
 			path, _ := match.Route.GetPathTemplate()
 			path = fmt.Sprintf("%s %s", r.Method, path)
 
-			ref := goref.Ref(path)
+			ref := g.Ref(path)
 			router.ServeHTTP(w, r)
 			ref.Deref()
 		} else {
