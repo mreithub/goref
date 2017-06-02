@@ -18,20 +18,20 @@ type Data struct {
 	AvgMsec float32 `json:"avgMsec"`
 }
 
-// Creates a Data object from an (internal) data object
+// Fills a Data object with the values from an (internal) data object
 //
 // Copies all the duplicate fields over and calculates the convenience fields.
-func newData(d *data) *Data {
+func newData(src *data) Data {
 	var avgMsec float64
-	if d.total > 0 {
-		avgMsec = float64(d.totalNsec) / float64(1000000.*d.total)
+	if src.total > 0 {
+		avgMsec = float64(src.totalNsec) / float64(1000000.*src.total)
 	}
 
-	return &Data{
-		Active:    d.active,
-		Total:     d.total,
-		TotalNsec: d.totalNsec,
-		TotalMsec: d.totalNsec / 1000000,
+	return Data{
+		Active:    src.active,
+		Total:     src.total,
+		TotalNsec: src.totalNsec,
+		TotalMsec: src.totalNsec / 1000000,
 		AvgMsec:   float32(avgMsec),
 	}
 }

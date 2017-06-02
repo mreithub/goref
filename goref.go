@@ -109,7 +109,7 @@ func (g *GoRef) GetSnapshot() Snapshot {
 // takeSnapshot -- internal (-> thread-unsafe) method taking a deep copy of the current state and sending it to snapshotChannel
 func (g *GoRef) takeSnapshot() {
 	// copy entries
-	data := map[string]*Data{}
+	data := make(map[string]Data, len(g.data))
 	for key, d := range g.data {
 		data[key] = newData(d)
 	}

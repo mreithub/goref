@@ -5,7 +5,7 @@ import "time"
 // Snapshot -- point-in-time copy of a GoRef instance
 type Snapshot struct {
 	// Snapshot data
-	Data map[string]*Data
+	Data map[string]Data
 
 	// Creation timestamp
 	Ts time.Time
