@@ -10,9 +10,7 @@ import (
 func TestBasics(t *testing.T) {
 	g := NewGoRef()
 
-	r := g.Ref("hello")
-	time.Sleep(3 * time.Microsecond)
-	r.Deref()
+	g.Ref("hello").Deref()
 
 	clone1 := g.GetSnapshot()
 	ref := g.Ref("world")
@@ -47,7 +45,7 @@ func TestBasics(t *testing.T) {
 	d1 := clone1.Data["hello"]
 	assert.Equal(t, int32(0), d1.Active)
 	assert.Equal(t, int64(1), d1.Count)
-	assert.True(t, d1.USec > 0)
+	assert.True(t, d1.Duration > 0)
 	assert.Equal(t, 1, len(clone1.Data))
 
 	// clone2: clone1 + Ref('world'),  sleep(100ms)
@@ -57,7 +55,7 @@ func TestBasics(t *testing.T) {
 	d2 := clone2.Data["world"]
 	assert.Equal(t, int32(1), d2.Active)
 	assert.Equal(t, int64(0), d2.Count)
-	assert.Equal(t, int64(0), d2.USec)
+	assert.Equal(t, time.Duration(0), d2.Duration)
 
 	// clone3: clone2 + Deref('world'), Ref('hello')
 	keys = clone3.Keys()
@@ -66,7 +64,7 @@ func TestBasics(t *testing.T) {
 	d3 := clone3.Data["world"]
 	assert.Equal(t, int32(0), d3.Active)
 	assert.Equal(t, int64(1), d3.Count)
-	assert.True(t, d3.USec >= 100000)
-	assert.True(t, clone3.Data["hello"].USec < 100)
-	assert.NotEqual(t, d1.USec, d3.USec)
+	assert.True(t, d3.Duration >= 100000000)
+	assert.True(t, clone3.Data["hello"].Duration < 100000)
+	assert.NotEqual(t, d1.Duration, d3.Duration)
 }

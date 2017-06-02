@@ -1,5 +1,7 @@
 package goref
 
+import "time"
+
 // Data -- Reference counter Snapshot data
 type Data struct {
 	// Currently active invocations
@@ -8,10 +10,10 @@ type Data struct {
 	// Total number of (finished) invocations
 	Count int64 `json:"count"`
 
-	// Total time spent (in microseconds)
-	USec int64 `json:"usec"`
+	// Total time spent
+	Duration time.Duration `json:"duration"`
 
-	// Computed field (usec/(1000*count)), provided for convenience
+	// Computed average run time in msec, provided for convenience
 	AvgMsec float32 `json:"avgMsec"`
 }
 
@@ -25,9 +27,9 @@ func newData(src *data) Data {
 	}
 
 	return Data{
-		Active:  src.active,
-		Count:   src.count,
-		USec:    src.nsec / 1000,
-		AvgMsec: float32(avgMsec),
+		Active:   src.active,
+		Count:    src.count,
+		Duration: time.Duration(src.nsec) * time.Nanosecond,
+		AvgMsec:  float32(avgMsec),
 	}
 }
