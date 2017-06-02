@@ -18,10 +18,10 @@ func TestSingleton(t *testing.T) {
 	assert.Contains(t, instance.data, "world")
 	d := instance.get("hello")
 	assert.Equal(t, int32(0), d.active)
-	assert.Equal(t, int64(1), d.total)
+	assert.Equal(t, int64(1), d.count)
 	d = instance.get("world")
 	assert.Equal(t, int32(0), d.active)
-	assert.Equal(t, int64(1), d.total)
+	assert.Equal(t, int64(1), d.count)
 
 	// reset instance
 	Reset()
@@ -39,22 +39,20 @@ func TestSingleton(t *testing.T) {
 	// snap1: Ref('hello'), Deref('hello'), Ref('world')
 	d1 := snap1.Data["hello"]
 	assert.Equal(t, int32(0), d1.Active)
-	assert.Equal(t, int64(1), d1.Total)
-	assert.True(t, d1.TotalNsec > 0)
+	assert.Equal(t, int64(1), d1.Count)
 	d2 := snap1.Data["world"]
 	assert.Equal(t, int32(1), d2.Active)
-	assert.Equal(t, int64(0), d2.Total)
-	assert.Equal(t, int64(0), d2.TotalNsec)
+	assert.Equal(t, int64(0), d2.Count)
+	assert.Equal(t, int64(0), d2.USec)
 	assert.Equal(t, 2, len(snap1.Data))
 
 	// snap2: snap1 + Deref('world')
 	d1 = snap2.Data["hello"]
 	assert.Equal(t, int32(0), d1.Active)
-	assert.Equal(t, int64(1), d1.Total)
-	assert.True(t, d1.TotalNsec > 0)
+	assert.Equal(t, int64(1), d1.Count)
 	d2 = snap2.Data["world"]
 	assert.Equal(t, int32(0), d2.Active)
-	assert.Equal(t, int64(1), d2.Total)
-	assert.True(t, d2.TotalNsec > 0)
+	assert.Equal(t, int64(1), d2.Count)
+	assert.True(t, d2.USec > 0)
 	assert.Equal(t, 2, len(snap2.Data))
 }

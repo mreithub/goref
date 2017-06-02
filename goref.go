@@ -10,9 +10,9 @@ type data struct {
 	// currently active invocations
 	active int32
 	// number of finished invocations
-	total int64
+	count int64
 	// time spent in those invocations (in nanoseconds)
-	totalNsec int64
+	nsec int64
 }
 
 // event types (for internal communication):
@@ -83,8 +83,8 @@ func (g *GoRef) run() {
 		case evDeref:
 			d := g.get(msg.key)
 			d.active--
-			d.total++
-			d.totalNsec += msg.nsec
+			d.count++
+			d.nsec += msg.nsec
 			break
 		case evSnapshot:
 			g.takeSnapshot()

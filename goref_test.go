@@ -10,7 +10,10 @@ import (
 func TestBasics(t *testing.T) {
 	g := NewGoRef()
 
-	g.Ref("hello").Deref()
+	r := g.Ref("hello")
+	time.Sleep(3 * time.Microsecond)
+	r.Deref()
+
 	clone1 := g.GetSnapshot()
 	ref := g.Ref("world")
 	time.Sleep(100 * time.Millisecond)
@@ -30,12 +33,12 @@ func TestBasics(t *testing.T) {
 	assert.Contains(t, g.data, "world")
 	d := g.get("hello")
 	assert.Equal(t, int32(0), d.active)
-	assert.Equal(t, int64(2), d.total)
-	assert.True(t, d.totalNsec > 0)
+	assert.Equal(t, int64(2), d.count)
+	assert.True(t, d.nsec > 0)
 	d = g.get("world")
 	assert.Equal(t, int32(0), d.active)
-	assert.Equal(t, int64(1), d.total)
-	assert.True(t, d.totalNsec >= 100000000)
+	assert.Equal(t, int64(1), d.count)
+	assert.True(t, d.nsec >= 100000000)
 
 	// clone1: Ref('hello'), Deref('hello')
 	keys := clone1.Keys()
@@ -43,8 +46,8 @@ func TestBasics(t *testing.T) {
 	assert.NotContains(t, keys, "world")
 	d1 := clone1.Data["hello"]
 	assert.Equal(t, int32(0), d1.Active)
-	assert.Equal(t, int64(1), d1.Total)
-	assert.True(t, d1.TotalNsec > 0)
+	assert.Equal(t, int64(1), d1.Count)
+	assert.True(t, d1.USec > 0)
 	assert.Equal(t, 1, len(clone1.Data))
 
 	// clone2: clone1 + Ref('world'),  sleep(100ms)
@@ -53,8 +56,8 @@ func TestBasics(t *testing.T) {
 	assert.Contains(t, keys, "world")
 	d2 := clone2.Data["world"]
 	assert.Equal(t, int32(1), d2.Active)
-	assert.Equal(t, int64(0), d2.Total)
-	assert.Equal(t, int64(0), d2.TotalNsec)
+	assert.Equal(t, int64(0), d2.Count)
+	assert.Equal(t, int64(0), d2.USec)
 
 	// clone3: clone2 + Deref('world'), Ref('hello')
 	keys = clone3.Keys()
@@ -62,8 +65,8 @@ func TestBasics(t *testing.T) {
 	assert.Contains(t, keys, "world")
 	d3 := clone3.Data["world"]
 	assert.Equal(t, int32(0), d3.Active)
-	assert.Equal(t, int64(1), d3.Total)
-	assert.True(t, d3.TotalNsec >= 100000000)
-	assert.True(t, clone3.Data["hello"].TotalNsec < 100000)
-	assert.NotEqual(t, d1.TotalNsec, d3.TotalNsec)
+	assert.Equal(t, int64(1), d3.Count)
+	assert.True(t, d3.USec >= 100000)
+	assert.True(t, clone3.Data["hello"].USec < 100)
+	assert.NotEqual(t, d1.USec, d3.USec)
 }
