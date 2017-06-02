@@ -1,5 +1,7 @@
 # GoRef - Simple (and fast) go-style invocation tracker
 
+[![Build Status](https://travis-ci.org/mreithub/goref.svg?branch=master)](https://travis-ci.org/mreithub/goref)
+
 GoRef is a small [Go][golang] package which implements a simple key-based
 method invocation counter and timing profiler.
 
