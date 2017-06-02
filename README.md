@@ -1,7 +1,7 @@
-# GoRef - Simple (and fast) golang reference counter (using `atomic` integers)
+# GoRef - Simple (and fast) go-style invocation tracker
 
 GoRef is a small [Go][golang] package which implements a simple key-based
-invocation and timing profiler.
+method invocation counter and timing profiler.
 
 It can be used to:
 - track execution time of your functions/goroutines
@@ -9,13 +9,13 @@ It can be used to:
 - Check if your goroutines exit properly
 - Track calls to your HTTP endpoints (and their execution time) - see below
 
-To access the internal profiling data, use `Clone()` or `Snapshot()`. Both will
-create a deep copy of GoRef's internal state. `Snapshot()` then adds that data
-to the list of named Snapshots (so you can look at different phases of your program separately).
+To access the internal profiling data, use `GetSnapshot()`.
+It'll ask the worker goroutine to create a deep copy of the GoRef's instance current state.
 
-GoRef's code is thread safe (where it has to be). But it was written with performance in mind, so
-while internal tracking is accurate, there might be one-off errors when taking a `Snapshot` while
-another goroutine is in the middle of calling `Deref()`.
+GoRef's code is thread safe. It uses a messaging channel read by a single worker goroutine
+which does the heavy lifting.  
+Calls to `Ref()` and `Deref()` are asynchronous
+(that asynchronousity doesn't affect time measurement though).  
 
 
 ### Getting started
@@ -43,8 +43,7 @@ ref := g.Ref("foo"); defer ref.Deref()
 ```
 
 
-At any point in time you can call `Clone()` to obtain a copy of the current state
-or `TakeSnapshot(name string)` to create point-in-time snapshots.
+At any point in time you can call `GetSnapshot()` to obtain a deep copy of the measurements.
 
 
 ### Example (excerpt from [webserver.go](examples/webserver.go)):
@@ -77,7 +76,7 @@ func gorefJSON(w http.ResponseWriter, r *http.Request) {
 	ref := goref.Ref("/goref.json")
 	defer ref.Deref()
 
-	data, _ := json.Marshal(goref.Clone().Data)
+	data, _ := json.Marshal(goref.GetSnapshot().Data)
 
 	w.Header().Add("Content-type", "application/json")
 	w.Write(data)
@@ -105,33 +104,29 @@ like this:
 {
   "/": {
     "active": 0,
-    "total": 5,
-    "totalNsec": 12296,
-    "totalMsec": 0,
+    "count": 5,
+    "usec": 12,
     "avgMsec": 0.0024592
   },
   "/goref.json": {
     "Active": 1,
-    "total": 9,
-    "totalNsec": 547385,
-    "totalMsec": 0,
+    "count": 9,
+    "usec": 547,
     "avgMsec": 0.060820557
   },
   "/delayed.html": {
     "active": 0,
-    "total": 2,
-    "totalNsec": 412555528,
-    "totalMsec": 412,
+    "count": 2,
+    "usec": 412555,
     "avgMsec": 206.27777
   }
 }
 ```
 
 - `active`: the number of currently active instances
-- `total`: total number of (finished) instances (doesn't include the `active` ones yet)
-- `totalNsec`: total time spent in that function
-- `totalMsec`: calculated field (`totalNsec/1000000`), provided for convenience and readability
-- `avgMsec`: calculated average (`totalNsec/(1000000*total)`)
+- `count`: number of (finished) instances (doesn't include the `active` ones yet)
+- `usec`: total time spent in that function (in microseconds)
+- `avgMsec`: calculated average (`usec/(1000*total)`)
 
 ### Using [`gorilla-mux`][gorillamux]
 
