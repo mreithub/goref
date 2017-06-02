@@ -31,7 +31,7 @@ func gorefJSON(w http.ResponseWriter, r *http.Request) {
 	ref := goref.Ref("/goref.json")
 	defer ref.Deref()
 
-	data, _ := json.Marshal(goref.GetSnapshot().Data)
+	data, _ := json.MarshalIndent(goref.GetSnapshot().Data, "", "  ")
 
 	w.Header().Add("Content-type", "application/json")
 	w.Write(data)

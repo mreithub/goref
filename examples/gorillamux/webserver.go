@@ -42,7 +42,7 @@ func processStuff(name string) chan string {
 }
 
 func gorefJSON(w http.ResponseWriter, r *http.Request) {
-	data, _ := json.Marshal(goref.GetSnapshot())
+	data, _ := json.MarshalIndent(goref.GetSnapshot(), "", "  ")
 
 	w.Header().Add("Content-type", "application/json")
 	w.Write(data)
