@@ -4,6 +4,9 @@ import "time"
 
 // Snapshot -- point-in-time copy of a GoRef instance
 type Snapshot struct {
+	// Child GoRef instance data
+	Children map[string]Snapshot
+
 	// Snapshot data
 	Data map[string]Data
 
