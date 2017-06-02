@@ -169,30 +169,43 @@ You'll get GoRef data looking something like this:
 
 ```json
 {
-  "POST /login": {
-    "active": 0,
-    "count": 5,
-    "duration": 12296,
-    "avgMsec": 0.0024592
+  "_children": {
+    "app": {
+      "data": {
+        "processing": {
+          "active": 0,
+          "count": 11,
+          "duration": 2232951708,
+          "avgMsec": 202.9956
+        }
+      },
+      "ts": "2017-06-02T21:50:11.717071564+02:00"
+    },
+    "http": {
+      "data": {
+        "GET /": {
+          "active": 0,
+          "count": 13,
+          "duration": 193220,
+          "avgMsec": 0.014863077
+        },
+        "GET /delayed.html": {
+          "active": 0,
+          "count": 11,
+          "duration": 2233380060,
+          "avgMsec": 203.03455
+        },
+        "GET /goref.json": {
+          "active": 1,
+          "count": 4,
+          "duration": 2025613,
+          "avgMsec": 0.50640327
+        }
+      },
+      "ts": "2017-06-02T21:50:11.71706162+02:00"
+    }
   },
-  "GET /goref.json": {
-    "Active": 1,
-    "count": 9,
-    "duration": 547385,
-    "avgMsec": 0.060820557
-  },
-  "GET /users/{name}/info": {
-    "active": 0,
-    "count": 2,
-    "duration": 412555528,
-    "avgMsec": 206.27777
-  },
-  "POST /login": {
-    "active": 0,
-    "count": 5,
-    "duration": 12296,
-    "avgMsec": 0.0024592
-  }
+  "ts": "2017-06-02T21:50:11.717049391+02:00"
 }
 ```
 
