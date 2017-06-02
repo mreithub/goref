@@ -104,28 +104,28 @@ like this:
 {
   "/": {
     "active": 0,
-    "count": 5,
-    "usec": 12,
-    "avgMsec": 0.0024592
-  },
-  "/goref.json": {
-    "Active": 1,
-    "count": 9,
-    "usec": 547,
-    "avgMsec": 0.060820557
+    "count": 6,
+    "duration": 31131,
+    "avgMsec": 0.0051885
   },
   "/delayed.html": {
     "active": 0,
-    "count": 2,
-    "usec": 412555,
-    "avgMsec": 206.27777
+    "count": 4,
+    "duration": 811560843,
+    "avgMsec": 202.89021
+  },
+  "/goref.json": {
+    "active": 1,
+    "count": 6,
+    "duration": 443599,
+    "avgMsec": 0.07393317
   }
 }
 ```
 
 - `active`: the number of currently active instances
 - `count`: number of (finished) instances (doesn't include the `active` ones yet)
-- `usec`: total time spent in that function (in microseconds)
+- `duration`: total time spent in that function (as time.Duration field)
 - `avgMsec`: calculated average (`usec/(1000*total)`)
 
 ### Using [`gorilla-mux`][gorillamux]
@@ -162,6 +162,38 @@ var addr = ":8080"
 var handler = handlers.LoggingHandler(os.Stdout, trackRequests(router))
 log.Fatal(http.ListenAndServe(addr, handler))
 ```
+
+### Performance impact
+
+GoRef aims to have as little impact on your application's performance as possible.
+
+That's why all the processing is done asynchronously in a separate goroutine.
+
+In a benchmark run on my laptop, this typical ref counter snippet takes around
+a microsecond to run:
+
+```go
+r := goref.Ref(); defer r.Deref()
+```
+
+Interestingly, things are a lot faster if we don't use `defer`
+as seen when running the `bench_test.go` benchmarks:
+
+```
+$ go test --run=XXX --bench=.
+BenchmarkMeasureTime-4        	50000000	        33.9 ns/op
+BenchmarkRefDeref-4           	 5000000	       339 ns/op
+BenchmarkRefDerefDeferred-4   	 1000000	      1124 ns/op
+BenchmarkGetSnapshot100-4     	  100000	     12367 ns/op
+BenchmarkGetSnapshot1000-4    	   10000	    127117 ns/op
+PASS
+ok  	github.com/mreithub/goref	7.605s
+```
+
+- `BenchmarkMeasureTime()` measures the cost of calling time.Now() twice and calculating the nanoseconds between them
+- `BenchmarkRefDeref()` calls `goref.Ref("hello").Deref()` directly (without using `defer`)
+- `BenchmarkRefDerefDeferred()` uses `defer` (as in the snippet above)
+- `BenchmarkGetSnapshot*()` measure the time it takes to take a snapshot of a GoRef instance with 100 and 1000 entries (= different keys) respectively
 
 [golang]: https://golang.org/
 [godoc]: https://godoc.org/github.com/mreithub/goref
