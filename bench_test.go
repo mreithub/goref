@@ -53,7 +53,7 @@ func benchmarkGetSnapshot(count int, b *testing.B) {
 	}
 
 	for n := 0; n < b.N; n++ {
-		snap = *g.Clone()
+		snap = g.GetSnapshot()
 	}
 }
 

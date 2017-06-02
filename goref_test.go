@@ -11,17 +11,19 @@ func TestBasics(t *testing.T) {
 	g := NewGoRef()
 
 	g.Ref("hello").Deref()
-	clone1 := g.Clone()
+	clone1 := g.GetSnapshot()
 	ref := g.Ref("world")
 	time.Sleep(100 * time.Millisecond)
-	clone2 := g.Clone()
+	clone2 := g.GetSnapshot()
 	ref.Deref()
 	ref = g.Ref("hello")
-	clone3 := g.Clone()
+	clone3 := g.GetSnapshot()
 	ref.Deref()
 
 	// all the assertions are done after the fact (to make sure the different clones
 	// keep their own copies of the Data)
+
+	g.GetSnapshot() // wait for run() to catch up
 
 	// final (current) state
 	assert.Contains(t, g.data, "hello")
@@ -34,7 +36,6 @@ func TestBasics(t *testing.T) {
 	assert.Equal(t, int32(0), d.active)
 	assert.Equal(t, int64(1), d.total)
 	assert.True(t, d.totalNsec >= 100000000)
-	assert.Empty(t, g.Snapshots())
 
 	// clone1: Ref('hello'), Deref('hello')
 	keys := clone1.Keys()

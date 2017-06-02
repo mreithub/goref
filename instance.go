@@ -2,14 +2,12 @@ package goref
 
 import (
 	"log"
-	"sync/atomic"
 	"time"
 )
 
 // Instance - Trackable instance
 type Instance struct {
 	parent    *GoRef
-	data      *data
 	key       string
 	startTime time.Time
 }
@@ -22,21 +20,13 @@ func (i *Instance) Deref() {
 	}
 
 	var now time.Time
+	var nsec int64
 	if !i.startTime.IsZero() {
 		// only measure time if startTime was set
 		now = time.Now()
+		nsec = now.Sub(i.startTime).Nanoseconds()
 	}
 
-	d := i.data
-	if d == nil {
-		d = i.parent.get(i.key)
-	}
-	atomic.AddInt32(&d.active, -1)
-	atomic.AddInt64(&d.total, 1)
-	if !now.IsZero() {
-		nsec := now.Sub(i.startTime).Nanoseconds()
-		atomic.AddInt64(&d.totalNsec, nsec)
-	}
-
+	i.parent.do(evDeref, i.key, nsec)
 	i.parent = nil // prevent double Deref()
 }

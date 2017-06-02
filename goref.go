@@ -1,10 +1,6 @@
 package goref
 
-import (
-	"sync"
-	"sync/atomic"
-	"time"
-)
+import "time"
 
 // TODO tracking execution time might cause performance issues (e.g. in virtualized environments gettimeofday() might be slow)
 //   if that turns out to be the case, deactivate Data.TotalNsec
@@ -19,19 +15,44 @@ type data struct {
 	totalNsec int64
 }
 
-// GoRef -- A simple, thread safe key-based reference counter that can be used for profiling your application (main class)
+// event types (for internal communication):
+const (
+	// stop the goroutine handling this GoRef instance
+	evStop = iota
+	// resets this GoRef instance
+	evReset = iota
+	// Takes a snapshot and sends it to snapshotChannel
+	evSnapshot = iota
+	// increments a ref counter
+	evRef = iota
+	// decrements a ref counter (and updates the total count + time)
+	evDeref = iota
+)
+
+type event struct {
+	typ  int
+	key  string
+	nsec int64
+}
+
+// GoRef -- A simple, go-style key-based reference counter that can be used for profiling your application (main class)
 type GoRef struct {
 	data map[string]*data
-	lock *sync.Mutex
 
-	snapshots *Snapshot
+	evChannel       chan event
+	snapshotChannel chan Snapshot
+}
+
+func (g *GoRef) do(evType int, key string, nsec int64) {
+	g.evChannel <- event{
+		typ:  evType,
+		key:  key,
+		nsec: nsec,
+	}
 }
 
 // get -- Get the Data object for the specified key (or create it) - thread safe
 func (g *GoRef) get(key string) *data {
-	g.lock.Lock()
-	defer g.lock.Unlock()
-
 	rc, ok := g.data[key]
 	if !ok {
 		rc = &data{}
@@ -41,62 +62,78 @@ func (g *GoRef) get(key string) *data {
 	return rc
 }
 
-// Clone -- Returns a Snapshot of the GoRef  (synchronously)
-func (g *GoRef) Clone() *Snapshot {
-	g.lock.Lock()
-	defer g.lock.Unlock()
-
-	data := map[string]*Data{}
-
-	for key, d := range g.data {
-		data[key] = newData(d)
-	}
-
-	// return a cloned GoRef instance
-	return &Snapshot{
-		Data: data,
-		Ts:   time.Now(),
-	}
-}
-
 // Ref -- References an instance of 'key'
 func (g *GoRef) Ref(key string) *Instance {
-	data := g.get(key)
-	atomic.AddInt32(&data.active, 1)
+	g.do(evRef, key, 0)
 
 	return &Instance{
 		parent:    g,
-		data:      data,
 		key:       key,
 		startTime: time.Now(),
 	}
 }
 
-// Snapshots -- Linked list of Snapshots (in reverse order)
-func (g *GoRef) Snapshots() *Snapshot {
-	// We assume here that pointer access is atomic (to avoid locking the Mutex)
-	return g.snapshots
+func (g *GoRef) run() {
+	for msg := range g.evChannel {
+		//log.Print("~~goref: ", msg)
+		switch msg.typ {
+		case evRef:
+			g.get(msg.key).active++
+			break
+		case evDeref:
+			d := g.get(msg.key)
+			d.active--
+			d.total++
+			d.totalNsec += msg.nsec
+			break
+		case evSnapshot:
+			g.takeSnapshot()
+			break
+		case evReset:
+			g.data = map[string]*data{}
+			break
+			//case msgStop:
+			//	return // TODO find a
+		default:
+			panic("unsupported GoRef event type")
+		}
+	}
 }
 
-// TakeSnapshot -- Clone the current GoRef instance and return the new snapshot
-func (g *GoRef) TakeSnapshot(name string) *Snapshot {
-	// prepends the snapshot to the list
-	rc := g.Clone()
-	rc.Name = name
+// GetSnapshot -- Creates and returns a deep copy of the current state
+func (g *GoRef) GetSnapshot() Snapshot {
+	g.do(evSnapshot, "", 0)
+	return <-g.snapshotChannel
+}
 
-	g.lock.Lock()
-	defer g.lock.Unlock()
+// takeSnapshot -- internal (-> thread-unsafe) method taking a deep copy of the current state and sending it to snapshotChannel
+func (g *GoRef) takeSnapshot() {
+	// copy entries
+	data := map[string]*Data{}
+	for key, d := range g.data {
+		data[key] = newData(d)
+	}
 
-	rc.Previous = g.snapshots
-	g.snapshots = rc
+	// send Snapshot
+	g.snapshotChannel <- Snapshot{
+		Data: data,
+		Ts:   time.Now(),
+	}
+}
+
+// Reset -- Resets this GoRef instance to its initial state
+func (g *GoRef) Reset() {
+	g.do(evReset, "", 0)
+}
+
+// NewGoRef -- Construct a new root-level GoRef instance
+func NewGoRef() *GoRef {
+	rc := &GoRef{
+		data:            map[string]*data{},
+		evChannel:       make(chan event, 100),
+		snapshotChannel: make(chan Snapshot, 5),
+	}
+	go rc.run()
 
 	return rc
-}
-
-// NewGoRef -- GoRef constructor
-func NewGoRef() *GoRef {
-	return &GoRef{
-		lock: &sync.Mutex{},
-		data: map[string]*data{},
-	}
 }
