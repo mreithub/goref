@@ -18,7 +18,7 @@ Calls to `Ref()` and `Deref()` are asynchronous
 (that asynchronousity doesn't affect time measurement though).  
 
 
-### Getting started
+## Getting started
 
 Download the package, e.g.:
 
@@ -46,7 +46,7 @@ ref := g.Ref("foo"); defer ref.Deref()
 At any point in time you can call `GetSnapshot()` to obtain a deep copy of the measurements.
 
 
-### Example (excerpt from [webserver.go](examples/webserver.go)):
+## Example (excerpt from [webserver.go](examples/webserver/webserver.go)):
 
 This example shows how to use GoRef in your web applications.  
 Here it tracks all web handler invocations.
@@ -128,10 +128,12 @@ like this:
 - `duration`: total time spent in that function (as time.Duration field)
 - `avgMsec`: calculated average (`usec/(1000*total)`)
 
-### Using [`gorilla-mux`][gorillamux]
+## Using [`gorilla-mux`][gorillamux]
 
 If you're using [gorilla-mux][gorillamux], there's a simple way to
 add GoRef to your project:
+
+(taken from the example in `examples/gorillamux/`)
 
 ```go
 func trackRequests(router *mux.Router) http.Handler {
@@ -196,7 +198,7 @@ You'll get GoRef data looking something like this:
 
 Requests matched by the same gorilla-mux route will be grouped together.
 
-### Performance impact
+## Performance impact
 
 GoRef aims to have as little impact on your application's performance as possible.
 
