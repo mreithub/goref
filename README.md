@@ -18,6 +18,7 @@ Calls to `Ref()` and `Deref()` are asynchronous
 (that asynchronousity doesn't affect time measurement though).  
 
 
+
 ## Getting started
 
 Download the package, e.g.:
@@ -44,6 +45,21 @@ ref := g.Ref("foo"); defer ref.Deref()
 
 
 At any point in time you can call `GetSnapshot()` to obtain a deep copy of the measurements.
+
+
+
+### Scoped measurements
+
+GoRef not only supports independent `GoRef` instances but also has a scope hierarchy (or tree structure
+if you will).
+
+With `goref.GetInstance(path ...string)` you can get a specific child of the global singleton instance.
+
+An example use case would be seperate, possibly nested instances for different parts of your application
+(e.g. `goref.GetInstance("http")` for HTTP endpoint handlers, `goref.GetInstance("dao", "psql")` for the PostgreSQL based DAO, ...)
+
+You can see a simple example of GoRef scopes in action in the *gorilla-mux* example below (or in the `examples/gorillamux/` directory)
+
 
 
 ## Example (excerpt from [webserver.go](examples/webserver/webserver.go)):
@@ -128,6 +144,8 @@ like this:
 - `duration`: total time spent in that function (as time.Duration field)
 - `avgMsec`: calculated average (`usec/(1000*total)`)
 
+
+
 ## Using [`gorilla-mux`][gorillamux]
 
 If you're using [gorilla-mux][gorillamux], there's a simple way to
@@ -210,6 +228,8 @@ You'll get GoRef data looking something like this:
 ```
 
 Requests matched by the same gorilla-mux route will be grouped together.
+
+
 
 ## Performance impact
 
